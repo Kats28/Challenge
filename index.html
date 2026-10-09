@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CHALLENGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+
+/* Layout: scoreboard header with the 5-month track, then tabbed working areas (ranking, weekly log, measurements, people, rules) */
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --ink:#131C2E; --muted:#5B6578; --line:#DDE2EB;
+  --accent:#2347D3; --accent-soft:#E3E9FC; --heat:#D9532B; --heat-soft:#FCE6DE;
+  --ok:#1F8A5B; --ok-soft:#DDF2E7; --warn:#A86E12; --warn-soft:#FBF0D9;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1320; --surface:#161D2D; --ink:#E7ECF5; --muted:#98A2B6; --line:#263049;
+  --accent:#8099FF; --accent-soft:#1E2850; --heat:#FF8B66; --heat-soft:#3A2119;
+  --ok:#4CC68E; --ok-soft:#15301F; --warn:#E8B04E; --warn-soft:#33280F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1320; --surface:#161D2D; --ink:#E7ECF5; --muted:#98A2B6; --line:#263049;
+  --accent:#8099FF; --accent-soft:#1E2850; --heat:#FF8B66; --heat-soft:#3A2119;
+  --ok:#4CC68E; --ok-soft:#15301F; --warn:#E8B04E; --warn-soft:#33280F; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);text-transform:uppercase}
+h2{font-size:1.7rem;text-transform:uppercase}
+h3{font-size:1.25rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums}
+
+/* header */
+header{display:grid;gap:14px}
+.headrow{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px}
+.countdown{font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.03em}
+.track{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 18px 16px}
+.rail{position:relative;height:8px;border-radius:99px;background:var(--line);margin:0 6px}
+.rail .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent)}
+.node{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.node.done{background:var(--accent)}
+.today{position:absolute;top:-16px;width:2px;height:40px;margin-left:-1px;background:var(--heat)}
+.labels{position:relative;height:46px;margin:12px 6px 0}
+.labels div{position:absolute;transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:.8rem}
+.labels div:first-child{transform:none;text-align:left}
+.labels div:last-child{transform:translateX(-100%);text-align:right}
+.labels b{display:block;font-family:var(--display);font-size:1.05rem;text-transform:uppercase}
+
+/* tabs */
+nav.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+nav.tabs button{font:600 1.05rem var(--display);text-transform:uppercase;letter-spacing:.04em;background:none;border:0;color:var(--muted);padding:10px 14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+section.panel{display:grid;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:18px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.banner{border-radius:12px;padding:12px 14px;font-size:.92rem}
+.banner.info{background:var(--accent-soft);color:var(--ink)}
+.banner.warn{background:var(--warn-soft);color:var(--ink)}
+.banner.err{background:var(--heat-soft);color:var(--ink)}
+
+/* segmented */
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px}
+.seg button{border:0;background:none;color:var(--muted);font:600 .9rem var(--body);padding:7px 12px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+/* table */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:nth-child(-n+2){text-align:left}
+td{padding:10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;vertical-align:middle}
+td:nth-child(-n+2){text-align:left}
+tr:last-child td{border-bottom:0}
+.pos{font:700 1.5rem var(--display);width:44px;color:var(--muted)}
+tr.lead .pos{color:var(--heat)}
+.pname{font-weight:600}
+.pts{font:600 1.15rem var(--display)}
+.raw{display:block;font-size:.75rem;color:var(--muted)}
+.pend{color:var(--muted);font-size:.8rem}
+.total{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.total .bar{width:90px;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.total .bar i{display:block;height:100%;background:var(--accent)}
+.total b{font:700 1.45rem var(--display);min-width:3ch}
+
+/* forms */
+form{display:grid;gap:12px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+label{display:grid;gap:4px;font-size:.82rem;font-weight:600;color:var(--muted)}
+label small{font-weight:400}
+input,select{font:500 1rem var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 10px;width:100%;min-width:0}
+.btn{font:700 1rem var(--display);text-transform:uppercase;letter-spacing:.05em;background:var(--accent);color:var(--surface);border:0;border-radius:10px;padding:11px 18px;cursor:pointer;justify-self:start}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
+.btn.danger{background:var(--heat);}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toast{font-size:.85rem;color:var(--ok);font-weight:600}
+.calc{display:flex;flex-wrap:wrap;gap:18px;background:var(--bg);border-radius:10px;padding:10px 14px}
+.calc div{display:grid}
+.calc b{font:700 1.4rem var(--display)}
+
+/* weekly grid */
+.wgrid{display:grid;gap:3px;font-size:.72rem}
+.wgrid .hd{color:var(--muted);text-align:center;font-weight:600;white-space:nowrap}
+.wgrid .nm{font-weight:600;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;align-self:center}
+.cell{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font:600 .78rem var(--display);color:var(--muted);padding:0}
+.cell.full{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.cell.half{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.cell.low{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cell.miss{background:var(--heat-soft);border-color:var(--heat-soft);color:var(--heat)}
+.cell.future{border-style:dashed;background:none}
+.cell.sel{outline:2px solid var(--ink);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{width:14px;height:14px;border-radius:4px;border:1px solid var(--line);display:inline-block}
+
+/* people */
+.plist{display:grid;gap:8px}
+.pitem{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.pitem .meta{font-size:.82rem;color:var(--muted)}
+.chip{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.chip.heat{background:var(--heat-soft);color:var(--heat)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+
+/* rules */
+.weights{display:grid;gap:10px}
+.wrow{display:grid;grid-template-columns:minmax(0,1fr) 120px 48px;gap:12px;align-items:center}
+.wrow .bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.wrow .bar i{display:block;height:100%;background:var(--accent)}
+.wrow.adh .bar i{background:var(--heat)}
+.prose{display:grid;gap:10px;max-width:68ch}
+.prose ul{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.empty{text-align:center;padding:30px 16px;display:grid;gap:10px;justify-items:center}
+@media (prefers-reduced-motion:no-preference){.rail .fill,.total .bar i{transition:width .5s ease}}
+
+/* login + user bar */
+.auth{min-height:100vh;display:grid;place-items:center;padding-inline:16px;padding-block:32px}
+.auth .card{width:100%;max-width:400px}
+.userbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;font-size:.85rem;color:var(--muted)}
+.userbar b{color:var(--ink)}
+.linkbtn{background:none;border:0;color:var(--accent);font:600 .85rem var(--body);cursor:pointer;padding:4px 2px}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--ink);font-weight:500}
+.check input{width:auto}
+</style>
+</head>
+<body>
+<div class="auth" id="auth">
+  <div class="card">
+    <div>
+      <p class="eyebrow">11 oct 2026 → 12 mar 2027</p>
+      <h1 style="font-size:2.4rem">CHALLENGE</h1>
+    </div>
+    <div id="setupMsg" class="banner err" hidden>Falta configurar la conexión: llena <b>config.js</b> con la URL y la llave pública de Supabase.</div>
+    <form id="loginForm">
+      <label>Correo<input id="lEmail" type="email" required autocomplete="email"></label>
+      <label>Contraseña<input id="lPass" type="password" required autocomplete="current-password"></label>
+      <div class="row"><button class="btn" type="submit" id="lBtn">Entrar</button><button class="linkbtn" type="button" id="forgot">Olvidé mi contraseña</button></div>
+      <p class="toast" id="lMsg"></p>
+    </form>
+    <form id="newPassForm" hidden>
+      <h3 id="npTitle">Elige tu nueva contraseña</h3>
+      <label>Nueva contraseña <small>(mínimo 8 caracteres)</small><input id="npPass" type="password" minlength="8" required autocomplete="new-password"></label>
+      <div class="row"><button class="btn" type="submit">Guardar contraseña</button><button class="linkbtn" type="button" id="npCancel" hidden>Cancelar</button></div>
+      <p class="toast" id="npMsg"></p>
+    </form>
+    <div id="notMember" hidden class="banner warn"></div>
+  </div>
+</div>
+<div class="wrap" id="app" hidden>
+  <header>
+    <div class="headrow">
+      <div>
+        <p class="eyebrow">11 oct 2026 → 12 mar 2027</p>
+        <h1>CHALLENGE</h1>
+      </div>
+      <div style="display:grid;gap:6px;justify-items:end"><div class="userbar" id="userbar"></div><p class="countdown" id="countdown"></p></div>
+    </div>
+    <div class="track" aria-label="Calendario del reto">
+      <div class="rail" id="rail"></div>
+      <div class="labels" id="labels"></div>
+    </div>
+  </header>
+
+  <div id="banners"></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="ranking" aria-selected="true">Ranking</button>
+    <button role="tab" data-tab="semana" aria-selected="false">Registro semanal</button>
+    <button role="tab" data-tab="medidas" aria-selected="false">Mediciones</button>
+    <button role="tab" data-tab="gente" aria-selected="false">Participantes</button>
+    <button role="tab" data-tab="reglas" aria-selected="false">Reglas</button>
+  </nav>
+
+  <!-- RANKING -->
+  <section class="panel" id="tab-ranking">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="seg" id="phaseSeg">
+          <button data-phase="1" aria-pressed="true">Fase 1 · 11 oct → 11 dic</button>
+          <button data-phase="2" aria-pressed="false">Fase 2 · 11 oct → 12 mar</button>
+        </div>
+        <span id="phaseStatus"></span>
+      </div>
+      <div id="rankBody"></div>
+    </div>
+  </section>
+
+  <!-- SEMANA -->
+  <section class="panel" id="tab-semana" hidden>
+    <div class="cols">
+      <div class="card">
+        <h2>Registrar semana</h2>
+        <p class="muted">Una entrada por persona y semana (lunes a domingo). Puedes corregirla cuando quieras.</p>
+        <form id="logForm">
+          <label>Participante<select id="logP" required></select></label>
+          <label>Semana<select id="logW" required></select></label>
+          <div class="fgrid">
+            <label>Sesiones de ejercicio <small>(30 min o más)</small><input id="logS" type="number" min="0" max="7" step="1" inputmode="numeric" required></label>
+            <label>Pasos promedio al día<input id="logSteps" type="number" min="0" max="60000" step="100" inputmode="numeric" required></label>
+          </div>
+          <div class="row"><button class="btn" type="submit" id="logBtn">Guardar semana</button><span class="toast" id="logToast"></span></div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2>Constancia</h2>
+          <span class="muted" style="font-size:.85rem">Toca una casilla para editarla</span>
+        </div>
+        <div class="scroll"><div class="wgrid" id="wgrid"></div></div>
+        <div class="legend">
+          <span><i style="background:var(--accent);border-color:var(--accent)"></i>Cumplió sesiones y pasos</span>
+          <span><i style="background:var(--accent-soft);border-color:var(--accent)"></i>Cumplió una meta</span>
+          <span><i style="background:var(--warn-soft);border-color:var(--warn)"></i>Registró, sin meta</span>
+          <span><i style="background:var(--heat-soft);border-color:var(--heat-soft)"></i>Sin registro</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDIDAS -->
+  <section class="panel" id="tab-medidas" hidden>
+    <div class="cols">
+      <div class="card">
+        <h2>Registrar medición</h2>
+        <form id="mForm">
+          <label>Participante<select id="mP" required></select></label>
+          <label>Medición<select id="mK" required></select></label>
+          <div class="fgrid">
+            <label>Peso (kg)<input id="m_weight" type="number" step="0.1" min="30" max="250" inputmode="decimal"></label>
+            <label>% grasa (báscula)<input id="m_fatScale" type="number" step="0.1" min="3" max="70" inputmode="decimal"></label>
+            <label>Cuello (cm)<input id="m_neck" type="number" step="0.1" min="20" max="70" inputmode="decimal"></label>
+            <label>Cintura (cm) <small>a la altura del ombligo</small><input id="m_waist" type="number" step="0.1" min="40" max="200" inputmode="decimal"></label>
+            <label>Cadera (cm) <small>parte más ancha</small><input id="m_hip" type="number" step="0.1" min="50" max="200" inputmode="decimal"></label>
+            <label>Brazo (cm) <small>opcional</small><input id="m_arm" type="number" step="0.1" min="15" max="70" inputmode="decimal"></label>
+            <label>Muslo (cm) <small>opcional</small><input id="m_thigh" type="number" step="0.1" min="30" max="100" inputmode="decimal"></label>
+          </div>
+          <div class="calc" id="mCalc"></div>
+          <div class="row"><button class="btn" type="submit" id="mBtn">Guardar medición</button><span class="toast" id="mToast"></span></div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Tabla de mediciones</h2>
+        <div class="seg" id="mViewSeg"></div>
+        <div class="scroll" id="mTable"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GENTE -->
+  <section class="panel" id="tab-gente" hidden>
+    <div class="cols">
+      <div class="card" id="pFormCard">
+        <h2 id="pFormTitle">Agregar participante</h2>
+        <p class="muted">El sexo y la estatura se usan en la fórmula de % de grasa con cinta métrica.</p>
+        <form id="pForm">
+          <label>Nombre<input id="pName" type="text" maxlength="40" required autocomplete="off"></label>
+          <label>Correo <small>(con el que va a entrar)</small><input id="pEmail" type="email" required autocomplete="off"></label>
+          <div class="fgrid">
+            <label>Sexo<select id="pSex" required><option value="F">Mujer</option><option value="M">Hombre</option></select></label>
+            <label>Estatura (cm)<input id="pHeight" type="number" min="120" max="220" step="0.5" inputmode="decimal" required></label>
+          </div>
+          <label class="check"><input id="pAdmin" type="checkbox"> Puede administrar el reto</label>
+          <div class="row"><button class="btn" type="submit" id="pBtn">Agregar</button><button class="btn ghost" type="button" id="pCancel" hidden>Cancelar</button><span class="toast" id="pToast"></span></div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h2>Equipo</h2><span class="chip" id="pCount">0 / 10</span></div>
+        <div class="plist" id="plist"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGLAS -->
+  <section class="panel" id="tab-reglas" hidden>
+    <div class="cols">
+      <div class="card">
+        <h2>Cómo se gana</h2>
+        <p class="muted">100 puntos por fase. 65 salen de la composición corporal y 35 de la constancia.</p>
+        <div class="weights" id="weights"></div>
+      </div>
+      <div class="card prose">
+        <h3>Puntos de composición corporal</h3>
+        <ul>
+          <li>Se compara la medición inicial (11 oct) contra la de cierre: 11 dic para la Fase 1 y 12 mar para la Fase 2.</li>
+          <li><b>% de grasa</b>: puntos porcentuales reducidos. Se promedia la báscula y la fórmula con cinta (método de la Marina de EE. UU.) cuando hay ambas.</li>
+          <li><b>Medidas</b>: % de reducción de cintura + cadera.</li>
+          <li><b>Peso</b>: % de peso perdido respecto al inicial.</li>
+          <li>Quien más mejora en cada rubro se lleva los puntos completos; los demás reciben la parte proporcional. Empeorar da 0, no resta.</li>
+        </ul>
+        <h3>Puntos de constancia</h3>
+        <ul>
+          <li><b>Sesiones</b>: meta de 4 sesiones de 30 min o más por semana. Cada semana cuenta hasta 4, así que 7 sesiones en una semana no compensan una semana en cero.</li>
+          <li><b>Pasos</b>: meta de 8,000 pasos promedio al día, también con tope semanal.</li>
+          <li>Solo cuentan semanas ya terminadas. Una semana sin registro vale 0.</li>
+        </ul>
+        <h3>Protocolo de medición</h3>
+        <ul>
+          <li>Misma báscula, en ayunas, después de ir al baño y antes de entrenar.</li>
+          <li>Misma persona mide con la misma cinta. Cinta firme sin apretar, medir dos veces y anotar el promedio.</li>
+          <li>Cuello debajo de la manzana de Adán; cintura a la altura del ombligo; cadera en la parte más ancha de los glúteos.</li>
+        </ul>
+        <h3>Desempate</h3>
+        <p>Gana quien tenga más puntos de constancia.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
