@@ -76,6 +76,24 @@
     if (error) { $("lMsg").style.color = "var(--heat)"; $("lMsg").textContent = /confirm/i.test(error.message) ? "Tu correo aún no está confirmado. Revisa tu bandeja." : "Correo o contraseña incorrectos."; }
     else $("lMsg").textContent = "";
   });
+  // sign-up only works for emails already in participantes (enforced by a trigger in schema.sql)
+  $("signup").addEventListener("click", async () => {
+    const email = $("lEmail").value.trim().toLowerCase(), password = $("lPass").value;
+    const say = (t, bad) => { $("lMsg").style.color = bad ? "var(--heat)" : "var(--muted)"; $("lMsg").textContent = t; };
+    if (!email || !$("lEmail").checkValidity()) { say("Escribe tu correo arriba.", true); $("lEmail").focus(); return; }
+    if (password.length < 8) { say("Elige una contraseña de mínimo 8 caracteres.", true); $("lPass").focus(); return; }
+    $("signup").disabled = true; say("Creando tu cuenta…");
+    const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
+    $("signup").disabled = false;
+    if (error) {
+      say(/already|registered/i.test(error.message) ? "Ese correo ya tiene cuenta. Usa Entrar (u Olvidé mi contraseña)."
+        : /database error/i.test(error.message) ? "Ese correo no está inscrito en el reto. Pide a quien lo organiza que te agregue."
+        : "No se pudo crear la cuenta: " + error.message, true);
+      return;
+    }
+    if (!data.session) say("Listo. Revisa tu correo para confirmar la cuenta y luego entra.");
+    else say("");
+  });
   $("forgot").addEventListener("click", async () => {
     const email = $("lEmail").value.trim().toLowerCase();
     if (!email) { $("lMsg").style.color = "var(--heat)"; $("lMsg").textContent = "Escribe tu correo arriba y vuelve a tocar aquí."; $("lEmail").focus(); return; }
@@ -298,7 +316,7 @@
   async function write(fn, toastEl, okMsg) {
     const { error } = await fn();
     if (error) {
-      const msg = error.code === "42501" || /row-level security/i.test(error.message) ? "No tienes permiso para cambiar ese dato." : error.code === "23505" ? "Ese correo ya está inscrito." : error.code === "23514" ? "Algún valor está fuera de rango. Revísalo." : "No se guardó. Revisa tu conexión e inténtalo de nuevo.";
+      const msg = error.code === "42501" || /row-level security/i.test(error.message) ? "No tienes permiso para cambiar ese dato." : error.code === "23505" ? "Ese correo ya está inscrito." : error.code === "23514" ? "Algún valor está fuera de rango. Revísalo." : `No se guardó. Revisa tu conexión e inténtalo de nuevo. (${error.code || ""} ${error.message || ""})`;
       flash(toastEl, msg, true); return false;
     }
     try { await loadAll(); } catch (e) {}

@@ -102,6 +102,22 @@ grant usage on schema public to authenticated;
 grant select, insert, update, delete on public.participantes, public.mediciones, public.semanas to authenticated;
 grant execute on function public.mi_email(), public.es_miembro(), public.es_admin(), public.es_mio(uuid) to authenticated;
 
+-- ---------- Registro: solo correos inscritos pueden crear cuenta ----------
+-- Cualquier cuenta nueva (desde la app o desde el panel) debe tener un correo que ya esté en participantes.
+create or replace function public.solo_inscritos() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.participantes where email = lower(new.email)) then
+    raise exception 'correo_no_inscrito';
+  end if;
+  return new;
+end $$;
+revoke execute on function public.solo_inscritos() from public, anon, authenticated;
+
+drop trigger if exists solo_inscritos on auth.users;
+create trigger solo_inscritos before insert on auth.users
+  for each row execute function public.solo_inscritos();
+
 -- =====================================================================
 -- PRIMER PASO DESPUÉS DE CORRER ESTO: agrégate como administradora.
 -- Cambia nombre, correo, sexo y estatura y corre solo estas líneas:
