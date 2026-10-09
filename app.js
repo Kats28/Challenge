@@ -8,7 +8,7 @@
     { key: "m2", date: P2, label: "Cierre F2 · 12 mar", long: "Cierre Fase 2 · 12 mar 2027" },
   ];
   const W = { fat: 30, meas: 20, weight: 15, sessions: 20, steps: 15 };
-  const GOAL_SESS = 4, GOAL_STEPS = 8000, MAX_PEOPLE = 10;
+  const GOAL_SESS = 4, GOAL_STEPS = 8000;
   const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
   // DB column <-> form field
   const MCOL = { weight: "peso_kg", fatScale: "grasa_bascula", neck: "cuello_cm", waist: "cintura_cm", hip: "cadera_cm", arm: "brazo_cm", thigh: "muslo_cm" };
@@ -295,7 +295,7 @@
   // ---------- people ----------
   function renderPeople() {
     const ps = people();
-    $("pCount").textContent = `${ps.length} / ${MAX_PEOPLE}`;
+    $("pCount").textContent = `${ps.length} ${ps.length === 1 ? "persona" : "personas"}`;
     $("plist").innerHTML = ps.map(([id, p]) => {
       const has0 = S.meas.has(id + "__m0");
       return `<div class="pitem"><div><div class="pname">${esc(p.name)}${p.admin ? ' <span class="chip">Admin</span>' : ""}</div><div class="meta">${p.sex === "M" ? "Hombre" : "Mujer"} · ${p.height} cm${isAdmin() ? " · " + esc(p.email) : ""} · ${has0 ? '<span class="chip ok">Medición inicial lista</span>' : '<span class="chip">Sin medición inicial</span>'}</div></div>
@@ -362,7 +362,6 @@
     // an admin can't remove their own admin access by accident
     const es_admin = $("pAdmin").checked || (!!S.editP && S.editP === S.me.id);
     if (!nombre || !email || !estatura_cm) return;
-    if (!S.editP && S.people.size >= MAX_PEOPLE) { flash($("pToast"), `El reto es de ${MAX_PEOPLE} personas.`, true); return; }
     const editing = S.editP;
     const ok = await write(() => editing
       ? sb.from("participantes").update({ nombre, email, sexo, estatura_cm, es_admin }).eq("id", editing)
