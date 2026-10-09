@@ -342,7 +342,7 @@
   $("pForm").addEventListener("submit", async e => { e.preventDefault();
     const nombre = $("pName").value.trim(), email = $("pEmail").value.trim().toLowerCase(), sexo = $("pSex").value, estatura_cm = num($("pHeight").value);
     // an admin can't remove their own admin access by accident
-    const es_admin = $("pAdmin").checked || (S.editP && S.editP === S.me.id);
+    const es_admin = $("pAdmin").checked || (!!S.editP && S.editP === S.me.id);
     if (!nombre || !email || !estatura_cm) return;
     if (!S.editP && S.people.size >= MAX_PEOPLE) { flash($("pToast"), `El reto es de ${MAX_PEOPLE} personas.`, true); return; }
     const editing = S.editP;
