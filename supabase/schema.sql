@@ -98,7 +98,9 @@ create policy s_borrar on public.semanas for delete to authenticated using (es_a
 
 -- Nadie sin sesión puede leer ni escribir.
 revoke all on public.participantes, public.mediciones, public.semanas from anon;
+grant usage on schema public to authenticated;
 grant select, insert, update, delete on public.participantes, public.mediciones, public.semanas to authenticated;
+grant execute on function public.mi_email(), public.es_miembro(), public.es_admin(), public.es_mio(uuid) to authenticated;
 
 -- =====================================================================
 -- PRIMER PASO DESPUÉS DE CORRER ESTO: agrégate como administradora.

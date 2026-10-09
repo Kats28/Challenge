@@ -5,6 +5,6 @@
 // La llave "anon" es pública por diseño: la seguridad la ponen las reglas del archivo schema.sql.
 // NUNCA pongas aquí la llave "service_role".
 window.RETO_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: ""
+  SUPABASE_URL: "https://dtznupftvvjgfyepohed.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_wtXcjDRAjTue30-TvwzEAA_qkbHRLmB"
 };
